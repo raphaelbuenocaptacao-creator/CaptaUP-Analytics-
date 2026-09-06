@@ -1,0 +1,32 @@
+name: CaptaUP Auth Smoke
+
+on:
+  pull_request:
+    paths:
+      - 'captaup-auth.js'
+      - 'captaup-admin.js'
+      - 'adm-access.js'
+      - '.github/workflows/auth-smoke.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'captaup-auth.js'
+      - 'captaup-admin.js'
+      - 'adm-access.js'
+
+permissions:
+  contents: read
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check auth JavaScript syntax
+        run: |
+          node --check captaup-auth.js
+          node --check captaup-admin.js
+          node --check adm-access.js

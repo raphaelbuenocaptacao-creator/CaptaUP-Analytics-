@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "captaup-shell-";
-const CACHE = `${CACHE_PREFIX}v54-safe`;
+const CACHE = `${CACHE_PREFIX}v55-private-vary-safe`;
 const APP_SHELL = new Set(["./","./index.html","./manifest.webmanifest","./icon-192.png","./icon-512.png","./icon-512-maskable.png","./captaup.css","./captaup-auth.js","./captaup-admin.js","./captaup-auth-bridge.js","./captaup-data.js","./captaup-main.js","./ranking-controls.js","./ranking-page.js","./manager-insights.js","./active-professionals.js","./default-period.js","./captaup-pwa.js","./pwa-update.js","./weekly-captain.js","./engagement.js"]);
 const PRIVATE_PATH_RE = /\/(api|auth|login|logout|admin|session|sessions|token|tokens|password|account|profile|me)(\/|$)/i;
 const SENSITIVE_QUERY_RE = /^(token|access_token|refresh_token|password|passwd|secret|session|auth|authorization|api_key|apikey|key|code|credential|credentials)$/i;
@@ -16,11 +16,19 @@ function isSafeRequest(request){
   return url.origin === self.location.origin && !PRIVATE_PATH_RE.test(url.pathname) && !hasSensitiveQuery(url);
 }
 
+function variesPrivate(response){
+  const vary = (response.headers.get("vary") || "").toLowerCase();
+  return vary.split(",").some(value => {
+    const key = value.trim();
+    return key === "cookie" || key === "authorization";
+  });
+}
+
 function isCacheableResponse(response){
   if(!response || !response.ok || response.status === 206 || response.type !== "basic" || response.redirected) return false;
   const cacheControl = response.headers.get("cache-control") || "";
   if(/(?:^|,)\s*(?:private|no-store)(?:\s|,|$)/i.test(cacheControl)) return false;
-  if(response.headers.has("set-cookie") || response.headers.has("content-range")) return false;
+  if(response.headers.has("set-cookie") || response.headers.has("content-range") || variesPrivate(response)) return false;
   return true;
 }
 

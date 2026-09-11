@@ -1,0 +1,41 @@
+name: CaptaUP PWA Audit
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pwa-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate PWA contract
+        run: |
+          python - <<'PY'
+          import json, pathlib, re
+
+          root = pathlib.Path('.')
+          manifest = json.loads((root / 'manifest.webmanifest').read_text())
+          required = ['name', 'short_name', 'start_url', 'display', 'theme_color', 'icons']
+          missing = [k for k in required if not manifest.get(k)]
+          assert not missing, f'Manifest missing fields: {missing}'
+          assert manifest['display'] in {'standalone', 'fullscreen', 'minimal-ui'}
+
+          icons = manifest['icons']
+          assert any(i.get('sizes') == '192x192' and i.get('type') == 'image/png' for i in icons), 'Missing 192x192 PNG icon'
+          assert any(i.get('sizes') == '512x512' and i.get('type') == 'image/png' for i in icons), 'Missing 512x512 PNG icon'
+          assert any(i.get('sizes') == '512x512' and 'maskable' in i.get('purpose','') for i in icons), 'Missing 512x512 maskable icon'
+          for name in ['icon-192.png','icon-512.png','icon-512-maskable.png','sw.js','index.html']:
+              assert (root / name).exists(), f'Missing {name}'
+
+          sw = (root / 'sw.js').read_text().lower()
+          for token in ['authorization','cookie','range','if-range','private','no-store','set-cookie','content-range']:
+              assert token in sw, f'SW missing cache-safety token: {token}'
+          assert re.search(r'key\s*===\s*["\']if-range["\']', sw), 'SW must reject Vary: If-Range responses'
+          assert 'key.startsWith(cache_prefix)' in sw, 'SW cache cleanup must be scoped to this app prefix'
+          print('CaptaUP PWA contract OK')
+          PY

@@ -36,6 +36,6 @@ jobs:
           for token in ['authorization','cookie','range','if-range','private','no-store','set-cookie','content-range']:
               assert token in sw, f'SW missing cache-safety token: {token}'
           assert re.search(r'key\s*===\s*["\']if-range["\']', sw), 'SW must reject Vary: If-Range responses'
-          assert 'key.startsWith(cache_prefix)' in sw, 'SW cache cleanup must be scoped to this app prefix'
+          assert 'key.startswith(cache_prefix)' in sw, 'SW cache cleanup must be scoped to this app prefix'
           print('CaptaUP PWA contract OK')
           PY

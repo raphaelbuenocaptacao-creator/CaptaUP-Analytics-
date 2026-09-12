@@ -1,6 +1,6 @@
 (function(){
 'use strict';
-if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=56-private-vary-star-safe',{updateViaCache:'none'}).then(reg=>reg.update()).catch(console.error));}
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=v58-private-vary-range-safe',{updateViaCache:'none'}).then(reg=>reg.update()).catch(console.error));}
 let deferredPrompt=null;
 let lastProfileTap=0;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;mountInstall();});

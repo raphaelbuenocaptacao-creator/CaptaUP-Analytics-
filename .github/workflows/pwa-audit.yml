@@ -29,7 +29,7 @@ jobs:
           assert any(i.get('sizes') == '192x192' and i.get('type') == 'image/png' for i in icons), 'Missing 192x192 PNG icon'
           assert any(i.get('sizes') == '512x512' and i.get('type') == 'image/png' for i in icons), 'Missing 512x512 PNG icon'
           assert any(i.get('sizes') == '512x512' and 'maskable' in i.get('purpose','') for i in icons), 'Missing 512x512 maskable icon'
-          for name in ['icon-192.png','icon-512.png','icon-512-maskable.png','sw.js','index.html','pwa-update.js']:
+          for name in ['icon-192.png','icon-512.png','icon-512-maskable.png','sw.js','index.html','pwa-update.js','captaup-pwa.js']:
               assert (root / name).exists(), f'Missing {name}'
 
           sw_text = (root / 'sw.js').read_text()
@@ -40,13 +40,18 @@ jobs:
           assert 'key.startswith(cache_prefix)' in sw, 'SW cache cleanup must be scoped to this app prefix'
 
           cache_match = re.search(r'CACHE\s*=\s*`\$\{CACHE_PREFIX\}(v[^`]+)`', sw_text)
-          register_text = (root / 'pwa-update.js').read_text()
-          register_match = re.search(r'sw\.js\?([^\'"\s]+)', register_text)
           assert cache_match, 'SW cache version not found'
-          assert register_match, 'Canonical SW registration version not found'
-          assert register_match.group(1) == cache_match.group(1), (
-              f'SW version mismatch: register={register_match.group(1)} cache={cache_match.group(1)}'
-          )
-          assert "updateViaCache: 'none'" in register_text or 'updateViaCache: "none"' in register_text, 'SW registration must bypass HTTP cache'
+          version = cache_match.group(1)
+
+          for filename in ('pwa-update.js', 'captaup-pwa.js'):
+              register_text = (root / filename).read_text()
+              registrations = re.findall(r'sw\.js\?v=([^\'"\s]+)', register_text)
+              assert registrations, f'SW registration version not found in {filename}'
+              assert all(item == version for item in registrations), (
+                  f'SW version mismatch in {filename}: register={registrations} cache={version}'
+              )
+              assert "updateViaCache: 'none'" in register_text or 'updateViaCache:"none"' in register_text or 'updateViaCache: "none"' in register_text, (
+                  f'{filename} must bypass HTTP cache when registering the SW'
+              )
           print('CaptaUP PWA contract OK')
           PY

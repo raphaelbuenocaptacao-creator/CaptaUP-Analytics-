@@ -50,7 +50,8 @@ jobs:
               assert all(item == version for item in registrations), (
                   f'SW version mismatch in {filename}: register={registrations} cache={version}'
               )
-              assert "updateViaCache: 'none'" in register_text or 'updateViaCache:"none"' in register_text or 'updateViaCache: "none"' in register_text, (
+              normalized = re.sub(r'\s+', '', register_text)
+              assert "updateViaCache:'none'" in normalized or 'updateViaCache:"none"' in normalized, (
                   f'{filename} must bypass HTTP cache when registering the SW'
               )
           print('CaptaUP PWA contract OK')

@@ -5,7 +5,7 @@
   if(!secure) return;
   window.addEventListener('load', async () => {
     try {
-      const registration = await navigator.serviceWorker.register('./sw.js?v=58-private-vary-range-safe', {
+      const registration = await navigator.serviceWorker.register('./sw.js?v=v58-private-vary-range-safe', {
         scope: './',
         updateViaCache: 'none'
       });

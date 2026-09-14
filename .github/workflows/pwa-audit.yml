@@ -3,6 +3,7 @@ name: CaptaUP PWA Audit
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -53,6 +54,12 @@ jobs:
               normalized = re.sub(r'\s+', '', register_text)
               assert "updateViaCache:'none'" in normalized or 'updateViaCache:"none"' in normalized, (
                   f'{filename} must bypass HTTP cache when registering the SW'
+              )
+              has_https_guard = "location.protocol==='https:'" in normalized or 'location.protocol==="https:"' in normalized
+              has_localhost_guard = "location.hostname==='localhost'" in normalized or 'location.hostname==="localhost"' in normalized
+              has_loopback_guard = "location.hostname==='127.0.0.1'" in normalized or 'location.hostname==="127.0.0.1"' in normalized
+              assert has_https_guard and has_localhost_guard and has_loopback_guard, (
+                  f'{filename} must register service worker only on HTTPS or localhost'
               )
           print('CaptaUP PWA contract OK')
           PY

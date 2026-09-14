@@ -1,6 +1,7 @@
 (function(){
 'use strict';
-if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=v58-private-vary-range-safe',{updateViaCache:'none'}).then(reg=>reg.update()).catch(console.error));}
+const secureContext = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+if('serviceWorker' in navigator && secureContext){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=v58-private-vary-range-safe',{updateViaCache:'none'}).then(reg=>reg.update()).catch(console.error));}
 let deferredPrompt=null;
 let lastProfileTap=0;
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;mountInstall();});
